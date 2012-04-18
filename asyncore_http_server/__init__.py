@@ -178,6 +178,17 @@ class RequestHandler(asynchat.async_chat, SimpleHTTPServer.SimpleHTTPRequestHand
         self.code = None
         # buffer the response and headers to avoid several calls to select()
 
+    def inject(self, request):
+        '''
+        Feed the handler with a request, emulating data from the socket
+        '''
+        request_list = request.split('\r\n\r\n')
+        self.collect_incoming_data(request_list.pop(0)[:-1])
+        self.found_terminator()
+        if request_list: # There is a POST body
+            self.collect_incoming_data(request_list.pop(0))
+            self.found_terminator()
+
     def update_b(self, fsize):
         if fsize > 1048576:
             self.use_buffer = True
