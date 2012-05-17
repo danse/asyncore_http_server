@@ -9,7 +9,7 @@ from Server import HTTPServer
         
 class serverd( asyncore.dispatcher ):
         
-    def __init__ (self, next_node=None, port=8080, logger=None):
+    def __init__ (self, callback, port=8080, logger=None):
         asyncore.dispatcher.__init__ ( self )          
         
         logger = logger or logging
@@ -25,7 +25,7 @@ class serverd( asyncore.dispatcher ):
         self.bind ( self.here )
         self.listen ( 5 )
         
-        self.next_node = next_node#or ReceiverTester()
+        self.callback = callback
     
     def handle_accept(self): 
         conn, addr = self.accept()
@@ -34,12 +34,11 @@ class serverd( asyncore.dispatcher ):
 
     def generate_handler(self, conn, addr):
         return HTTPServer(
-            self.next_node,
             conn,
             addr,
             self,
-            self.here,
-            self.logger,
+            self.callback,
+            logger=self.logger,
             )
     
     def do_sweep( self ):

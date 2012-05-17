@@ -183,7 +183,7 @@ class RequestHandler(asynchat.async_chat, SimpleHTTPServer.SimpleHTTPRequestHand
         Feed the handler with a request, emulating data from the socket
         '''
         request_list = request.split('\r\n\r\n')
-        self.collect_incoming_data(request_list.pop(0)[:-1])
+        self.collect_incoming_data(request_list.pop(0))
         self.found_terminator()
         if request_list: # There is a POST body
             self.collect_incoming_data(request_list.pop(0))

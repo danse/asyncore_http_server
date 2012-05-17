@@ -15,6 +15,7 @@ Receiver of the dict.
 """
 import cgi
 import socket
+import logging
 from asyncore import compact_traceback
 
 #from granpa.node.legacy.LogMessage import LogMessage, REMOTE2LOCAL
@@ -147,17 +148,16 @@ PROCESS_ERRORS = {
     
 class HTTPServer(RequestHandler):
                 
-    def __init__(self, node, conn, addr, server, here, logger):
+    def __init__(self, conn, addr, server, callback, logger=None):
         # Initialize the ProxyNode (Receiver)
         RequestHandler.__init__(self, conn, addr, server)
-        
-        self.hereAddr = server.here
         
         self.raise_flist = ((self.reset_internal_data, ()), )
         self.reset_internal_data()            
 
-        self.node = node
-        self.mainlog = logger
+        self.mainlog = logger or logging
+
+        self.callback = callback
         
     def raise_args(self, error):
         pe = PROCESS_ERRORS[NodeErrors.UNKNOWN]
@@ -229,7 +229,7 @@ class HTTPServer(RequestHandler):
             error = v.error
             flist = v.flist
         
-        self.mainlog.error('[%s] %s %s' % (str(self.hereAddr), error, str(v)))
+        self.mainlog.error('[%s] %s %s' % (str('here'), error, str(v)))
         
         if not isinstance(v, socket.error):
             self.push_final(http_status_code, 'text/plain', 'server error')
@@ -290,9 +290,10 @@ class HTTPServer(RequestHandler):
         # Send message to sender if everything is OK 
         status = NO_ERROR 
         msgid = None
-        return self.node.process_message(self._sender_msg, 
-                                         self.process_reply, 
-                                         self._sender_args)
+        return self.callback(self._sender_msg, self.process_reply)
+#        return self.node.process_message(self._sender_msg, 
+#                                         self.process_reply, 
+#                                         self._sender_args)
 
     ################################################
     ###    Processing Reply Callbacks            ###
