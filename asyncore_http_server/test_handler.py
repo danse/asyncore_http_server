@@ -1,7 +1,7 @@
 from unittest import TestCase
 import logging
 
-from asyncore_http_server.Server import HTTPServer
+from asyncore_http_server.ProxyServer import HTTPServer
 from asyncore_http_server.test import RequestSample
 
 logging.basicConfig()
