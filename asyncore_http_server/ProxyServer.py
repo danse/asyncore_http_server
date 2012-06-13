@@ -202,7 +202,7 @@ class HTTPServer(RequestHandler):
             self.mainlog.error(str(e))
         
     def log_msg(self, msg, direction):      
-        self.mainlog.info(LogMessage("[%s] %s [%s] %s", (self.get_local_address,), direction, (self.get_remote_address,)))  
+        self.mainlog.info(LogMessage("[%s] %s [%s] %s", (self.get_local_address,), direction, (self.get_remote_address,), msg))  
         self.mainlog.debug("Message: "+msg)  
         
     def handle_data(self):
