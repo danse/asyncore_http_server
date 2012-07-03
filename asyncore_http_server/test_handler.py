@@ -28,6 +28,10 @@ class TestHandler(TestCase):
         self.handler.inject(RequestSample.post)
         self.assertEqual(self.receiver.request, {'headers': {'Host': 'www.mysite.com', 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': '27', 'User-Agent': 'Mozilla/4.0'}, 'params': None, 'postdata': {'password': ['guessme'], 'userid': ['joe']}, 'path': '/login.jsp'})
 
+    def test_post_octet(self):
+        self.handler.inject(RequestSample.post_octet)
+        self.assertEqual(self.receiver.request, {'headers': {'Host': 'www.mysite.com', 'Content-Type': 'application/octet-stream', 'Content-Length': '27', 'User-Agent': 'Mozilla/4.0'}, 'params': None, 'postdata': 'Arbitrary Content', 'path': '/login.jsp'})
+
 if __name__=='__main__':
     test = TestHandler('test_post')
     import pdb; pdb.set_trace()
