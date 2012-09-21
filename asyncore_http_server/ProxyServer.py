@@ -92,8 +92,6 @@ class HTTPCodes:
 
 # Logical errors during process
 
-NO_ERROR = 0
-
 ROUTER_ERROR = "Router Error" 
 PARSER_ERROR = 'Parser Error' 
 POLICY_ERROR = 'Policy Error' 
@@ -111,7 +109,6 @@ class NodeErrors(object):
     A set of internal granpa codes, useful have an entry
     node different from SMTP
     """
-    NO_ERROR          = 'No Error'
     # A generic error which can be retried
     RETRY             = 'Retry Error'
     ROUTER            = ROUTER_ERROR 
@@ -252,14 +249,10 @@ class HTTPServer(RequestHandler):
         """ Process data from client connection, starting from lower level """  
         
         try:
-            # Get route from the mail RCPTTO and check errors
-#            (self.route, error) = self.get_route()
-#            if error != NO_ERROR:
-#                raise NodeError(self.raise_args(error))
             
             # Parse message and check errors
             self._sender_msg, error = self.parse_message()
-            if error != NO_ERROR:
+            if error:
                 raise NodeError(self.raise_args(error))
     
             # Get message id and update the private data
@@ -269,35 +262,15 @@ class HTTPServer(RequestHandler):
             # Prepare args for sendere connection
             self._sender_args = {'fileno' : self._fileno,}
 
-            # Get scheduler related to the specific route and check errors
-           #self.current_scheduler, error = \
-           #    GranPAScheduler.get_route(self.schedulers_map, self.route)                
-           #if error != GranPAScheduler.OK:
-           #    error = NodeErrors.SCHEDULER
-           #    raise NodeError(self.raise_args(error))
-                
             # Send message to the current sender and check errors
-            error = self.send_msg_to_sender()
-            if error != NO_ERROR:
+            error = self.callback(self._sender_msg, self.process_reply)
+            if error:
                 raise NodeError(self.raise_args(error))
             
         except Exception as e:
             self.mainlog.error(str(e))
             return self.handle_error()
             
-    def send_msg_to_sender(self):
-        # Retrieve connection for routing and check errors
-       #connection, connectionStatus = self.current_scheduler.get_connection()  
-       #if not connection:
-       #    return 0, NodeErrors.SCHEDULER
-        # Send message to sender if everything is OK 
-        status = NO_ERROR 
-        msgid = None
-        return self.callback(self._sender_msg, self.process_reply)
-#        return self.node.process_message(self._sender_msg, 
-#                                         self.process_reply, 
-#                                         self._sender_args)
-
     ################################################
     ###    Processing Reply Callbacks            ###
     ################################################
@@ -336,7 +309,6 @@ class HTTPServer(RequestHandler):
         """
         
         dataDict = {}
-        errors = NO_ERROR
         
         try :   
             dataDict['headers'] = None
@@ -366,17 +338,7 @@ class HTTPServer(RequestHandler):
             self.mainlog.error(str(e))
             return None, NodeErrors.PARSER
         
-        return dataDict, errors
-
-    def get_route(self):        
-        (route, error) = (None, NO_ERROR)
-        
-        try:
-            route = self.path
-        except Exception as e:
-            self.mainlog.error(str(e))
-            error =  NodeErrors.ROUTER
-        return route, error
+        return dataDict, None
 
     def do_POST(self):
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
